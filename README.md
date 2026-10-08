@@ -139,6 +139,31 @@ move by hand). It contains four TODOs, which are the subject of Ex5.
 
 ---
 
+## Architecture
+
+```mermaid
+flowchart LR
+    U[User] -->|approve + deposit| V[Vault.sol]
+    U -->|redeem| V
+    V -->|transferFrom| M[MockUSDC.sol]
+    V -->|mint / burn| S[SimpleStablecoin.sol]
+    M -.->|1:1 collateral| V
+    S -.->|sUSD| U
+
+    U -->|depositCollateral + mintStable| O[OverCollateralizedVault.sol]
+    P[MockPriceFeed.sol] -.->|8-decimal price| O
+    O -->|mint / burn| S
+```
+
+- **MockUSDC** — 6-decimal collateral with an open `faucet()`
+- **SimpleStablecoin** — ERC-20 with `MINTER_ROLE` and `PAUSER_ROLE`
+- **Vault** — the closed loop: `deposit()` mints 1:1, `redeem()` burns and returns collateral
+
+**Invariant:** `totalCollateral() >= totalSupply()` — every sUSD is backed by an equal amount of mUSDC.
+
+
+---
+
 ## 4. Homework
 
 ### Tier 1 (required) — Ex0–Ex6 in `EXERCISES.md`
