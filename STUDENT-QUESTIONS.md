@@ -10,7 +10,7 @@ Answer directly under each question. 150–300 words each — **reasoning over l
 
 > Your answer:
 The vault can destroy any user's sUSD without their consent. That is a risk, a bug or a compromised vault key would let someone burn balances while the collateral stays locked in the vault. The victim loses the coin and cannot redeem (test_Ex4_VaultHoldsTheKey_CanBurnAnyonesBalance shows collateral > supply afterwards).
-Increase permission restrictions, separate "who may mint" from "who may burn". In SimpleStablecoin keep mint() under MINTER_ROLE, but replace burn(address,uint256) with OpenZeppelin's ERC20Burnable: burn(amount) burns only the caller's own coins, and burnFrom(account, amount) works only after the account has approved the caller (it spends the allowance). In Vault.redeem() the user first approves the vault, then the vault calls stable.burnFrom(msg.sender, amount).
+Increase permission restrictions, separate "who may mint" from "who may burn". In SimpleStablecoin keep mint() under MINTER_ROLE, but replace burn(address,uint256) with OpenZeppelin's ERC20Burnable: burn(amount) burns only the caller's own coins, and burnFrom(account, amount) works only after the account has approved the caller (it spends the allowance). In Vault.redeem() the user first approves the vault, then the vault calls stable.burnFrom(msg.sender, amount). The trade-off is that redeem now needs one extra approve transaction, but the vault can only burn what a user explicitly allowed
 <br><br><br>
 
 **A2.** In this contract `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `PAUSER_ROLE` all go to the same address. How would you split them in production, and who holds each?
@@ -58,7 +58,7 @@ Flow: (1) the attacker bribes the holder of DEFAULT_ADMIN_ROLE (or of a minter k
 **D1.** Right now the collateral is `MockUSDC` and `totalCollateral()` just reads an on-chain balance — simple and reliable. If the collateral were **US Treasuries**, could this invariant still be written that way? What new problems appear?
 
 > Your answer:
-: a false report breaks the peg and the chain cannot detect it (Tether's operator paid a US$41M penalty for a false statement about its reserves). (2) Valuation: a bill is worth its market price plus accrued interest, not exactly par, so we need a price, a haircut and a freshness check on the report. (3) Liquidity and timing: redeeming means selling bills, which settle in about a day and only in market hours, while the chain runs 24/7. (4) Legal: who owns the bills, is the custodian bankruptcy-remote, and who is allowed to redeem (KYC).
+a false report breaks the peg and the chain cannot detect it (Tether's operator paid a US$41M penalty for a false statement about its reserves). (2) Valuation: a bill is worth its market price plus accrued interest, not exactly par, so we need a price, a haircut and a freshness check on the report. (3) Liquidity and timing: redeeming means selling bills, which settle in about a day and only in market hours, while the chain runs 24/7. (4) Legal: who owns the bills, is the custodian bankruptcy-remote, and who is allowed to redeem (KYC). So the invariant becomes reportedReserveValue() >= totalSupply(), which is only as trustworthy as whoever reports the number, and a passing check no longer proves the bills exist.
 <br><br><br>
 
 **D2.** If the collateral were **a building**, how would you put it inside this vault? Which off-chain roles or legal structures would you have to introduce?
@@ -75,11 +75,11 @@ Turn the red tests green in `test/exercises/01_LoopTasks.t.sol` to cover the sce
 
 | Scenario | Your test function name |
 |---|---|
-| Minting by a non-minter reverts | |
-| Transfers revert while paused | |
-| **Redemption** reverts while paused | |
-| An attacker cannot burn someone else's balance | |
-| ...but the vault holding `MINTER_ROLE` can | |
+| Minting by a non-minter reverts | `test_Ex4_Mint_RevertsForNonMinter` |
+| Transfers revert while paused | `test_Ex4_Pause_BlocksTransfers` |
+| **Redemption** reverts while paused | `test_Ex4_Pause_BlocksRedeem` |
+| An attacker cannot burn someone else's balance | `test_Ex4_AttackerCannotBurnOthersBalance` |
+| ...but the vault holding `MINTER_ROLE` can | `test_Ex4_VaultHoldsTheKey_CanBurnAnyonesBalance` |
 
 That last pair is meant to be read together: the guard is written correctly, but the key was handed to the vault. Keep it in mind when you answer A1.
 
