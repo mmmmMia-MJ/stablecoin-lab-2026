@@ -10,8 +10,7 @@ Answer directly under each question. 150–300 words each — **reasoning over l
 
 > Your answer:
 The vault can destroy any user's sUSD without their consent. That is a risk, a bug or a compromised vault key would let someone burn balances while the collateral stays locked in the vault. The victim loses the coin and cannot redeem (test_Ex4_VaultHoldsTheKey_CanBurnAnyonesBalance shows collateral > supply afterwards).
-Increase permission restrictions, separate "who may mint" from "who may burn". In SimpleStablecoin keep mint() under MINTER_ROLE, but replace burn(address,uint256) with OpenZeppelin's ERC20Burnable: burn(amount) burns only the caller's own coins, and burnFrom(account, amount) works only after the account has approved the caller (it spends the allowance). In Vault.redeem() the user first approves the vault, then the vault calls stable.burnFrom(msg.sender, amount). Now the vault can burn only what a user explicitly allowed. Trade-off: redeem needs one extra approve transaction.
-
+Increase permission restrictions, separate "who may mint" from "who may burn". In SimpleStablecoin keep mint() under MINTER_ROLE, but replace burn(address,uint256) with OpenZeppelin's ERC20Burnable: burn(amount) burns only the caller's own coins, and burnFrom(account, amount) works only after the account has approved the caller (it spends the allowance). In Vault.redeem() the user first approves the vault, then the vault calls stable.burnFrom(msg.sender, amount).
 <br><br><br>
 
 **A2.** In this contract `DEFAULT_ADMIN_ROLE`, `MINTER_ROLE` and `PAUSER_ROLE` all go to the same address. How would you split them in production, and who holds each?
