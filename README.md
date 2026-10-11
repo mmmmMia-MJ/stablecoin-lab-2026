@@ -139,31 +139,6 @@ move by hand). It contains four TODOs, which are the subject of Ex5.
 
 ---
 
-## Architecture
-
-```mermaid
-flowchart LR
-    U[User] -->|approve + deposit| V[Vault.sol]
-    U -->|redeem| V
-    V -->|transferFrom| M[MockUSDC.sol]
-    V -->|mint / burn| S[SimpleStablecoin.sol]
-    M -.->|1:1 collateral| V
-    S -.->|sUSD| U
-
-    U -->|depositCollateral + mintStable| O[OverCollateralizedVault.sol]
-    P[MockPriceFeed.sol] -.->|8-decimal price| O
-    O -->|mint / burn| S
-```
-
-- **MockUSDC** — 6-decimal collateral with an open `faucet()`
-- **SimpleStablecoin** — ERC-20 with `MINTER_ROLE` and `PAUSER_ROLE`
-- **Vault** — the closed loop: `deposit()` mints 1:1, `redeem()` burns and returns collateral
-
-**Invariant:** `totalCollateral() >= totalSupply()` — every sUSD is backed by an equal amount of mUSDC.
-
-
----
-
 ## 4. Homework
 
 ### Tier 1 (required) — Ex0–Ex6 in `EXERCISES.md`
@@ -293,3 +268,63 @@ These have no standard answers. They are the real point of this lab:
    `totalCollateral()` invariant?
 
 Question 4 is the door into next week's RWA lab.
+
+
+
+
+# Assignment Two -- Answer
+
+Discussion answers: see [`STUDENT-QUESTIONS.md`](STUDENT-QUESTIONS.md).
+
+---
+
+## Tier 1 screenshots
+
+**1. `make test` — 7 passed (core tests)**
+![make test](screenshot/submissionscreenshots00_make_test_7passed.png)
+
+**2. `make exercise` — 19 passed (Ex2, Ex4, Ex5, invariant tests)**
+![make exercise](screenshot/submissionscreenshots01_ex245_green.png)
+
+**3. Ex3 — attacker mints 1e11 sUSD; `totalSupply` = 1e11 but `totalCollateral` = 0, so the peg is broken**
+![Ex3](screenshot/submissionscreenshots02_ex3_break_peg.png)
+
+---
+
+## Tier 2: Sepolia contract addresses + Etherscan links
+
+| Contract | Address | Etherscan |
+|---|---|---|
+| MockUSDC | 0x3513846989bc4a3c7b26E22887B9CB9122859DaC | [link](https://sepolia.etherscan.io/address/0x3513846989bc4a3c7b26E22887B9CB9122859DaC#code) |
+| SimpleStablecoin | 0xd78811C555F0629CF73864aB44A36666B19335d2 | [link](https://sepolia.etherscan.io/address/0xd78811C555F0629CF73864aB44A36666B19335d2#code) |
+| Vault | 0x1dAa3eDcCf6832F21c06644e1A6cCd5C7D660D1C | [link](https://sepolia.etherscan.io/address/0x1dAa3eDcCf6832F21c06644e1A6cCd5C7D660D1C#code) |
+
+Deployer / admin: 0xe4F054F743d36e9eC83b31d04B748c29De0c453c
+
+![Tier 2 deploy log](screenshot/Tier2.png)
+
+---
+
+## Architecture
+
+```mermaid
+flowchart LR
+    U[User] -->|approve + deposit| V[Vault.sol]
+    U -->|redeem| V
+    V -->|transferFrom| M[MockUSDC.sol]
+    V -->|mint / burn| S[SimpleStablecoin.sol]
+    M -.->|1:1 collateral| V
+    S -.->|sUSD| U
+
+    U -->|depositCollateral + mintStable| O[OverCollateralizedVault.sol]
+    P[MockPriceFeed.sol] -.->|8-decimal price| O
+    O -->|mint / burn| S
+```
+
+- **MockUSDC** — 6-decimal collateral with an open `faucet()`
+- **SimpleStablecoin** — ERC-20 with `MINTER_ROLE` and `PAUSER_ROLE`
+- **Vault** — the closed loop: `deposit()` mints 1:1, `redeem()` burns and returns collateral
+
+**Invariant:** `totalCollateral() >= totalSupply()` — every sUSD is backed by an equal amount of mUSDC.
+
+
